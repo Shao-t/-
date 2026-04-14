@@ -148,8 +148,8 @@ let pieInst = null, barInst = null, currentTab = 'log';
 
 function save() { localStorage.setItem('pwa_records', JSON.stringify(records)); }
 
-const GAS_URL = ''; // ← 貼上你的 GAS 部署網址
-const PWA_SECRET = '';  // ← 跟 GAS 裡的密鑰一致
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyEprjtdMHz9oyQlU0THAjCaY7PQblPfheoNK5cUm4gjx1k-cb4wJBUQZzq-scEXuWewA/exec'; // ← 貼上你的 GAS 部署網址
+const PWA_SECRET = '289019';  // ← 跟 GAS 裡的密鑰一致
 
 function togglePartner() {
   const t = document.getElementById('inp-type').value;
@@ -194,23 +194,26 @@ function addRecord() {
 }
 
 async function syncToSheet(r) {
-  if (!GAS_URL || GAS_URL === '') return;
+  // 如果還沒設定網址，就先不執行同步
+  if (!GAS_URL || GAS_URL.includes('YOUR_GAS')) return;
+  
   try {
     await fetch(GAS_URL, {
       method: 'POST',
+      mode: 'no-cors', // 重要：這能繞過瀏覽器的安全性檢查，順利傳送資料
       body: JSON.stringify({
-        source: 'pwa',
         secret: PWA_SECRET,
-        payer: '我',
-        debtor: r.type === 'paid' ? r.partner : (r.type === 'debt' ? '我' : ''),
         item: r.item,
         amount: r.amount,
         otherAmount: r.otherAmount,
-        myAmount: r.myAmount
+        myAmount: r.myAmount,
+        type: r.type,
+        partner: r.partner,
+        user: "我的名字" // 每位使用者可以改成自己的暱稱
       })
     });
   } catch (err) {
-    console.warn('同步失敗，僅儲存本機', err);
+    console.warn('雲端同步失敗', err);
   }
 }
 
