@@ -148,8 +148,8 @@ let pieInst = null, barInst = null, currentTab = 'log';
 
 function save() { localStorage.setItem('pwa_records', JSON.stringify(records)); }
 
-const GAS_URL = 'YOUR_GAS_DEPLOY_URL'; // ← 貼上你的 GAS 部署網址
-const PWA_SECRET = 'YOUR_SECRET_KEY';  // ← 跟 GAS 裡的密鑰一致
+const GAS_URL = 'https://script.google.com/macros/library/d/1XBa4emZrdCrxeg3239Ps-P3Y9Hx64BzOdPo6dANAX_lLHOzPBjGk8I7A/12'; // ← 貼上你的 GAS 部署網址
+const PWA_SECRET = '77988';  // ← 跟 GAS 裡的密鑰一致
 
 function togglePartner() {
   const t = document.getElementById('inp-type').value;
