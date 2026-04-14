@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="記帳本" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<title>記帳本</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f5f3;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --text: #1a1a1a;
+    --text-2: #666;
+    --text-3: #999;
+    --green: #1D9E75;
+    --red: #E24B4A;
+    --blue: #378ADD;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111;
+      --surface: #1e1e1e;
+      --border: rgba(255,255,255,0.1);
+      --text: #f0f0f0;
+      --text-2: #aaa;
+      --text-3: #666;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; padding-bottom: env(safe-area-inset-bottom); }
+  .header { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 16px 20px; padding-top: calc(16px + env(safe-area-inset-top)); position: sticky; top: 0; z-index: 10; }
+  .header h1 { font-size: 18px; font-weight: 600; }
+  .content { padding: 16px; max-width: 600px; margin: 0 auto; }
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .metric { background: var(--surface); border-radius: var(--radius); padding: 14px; border: 0.5px solid var(--border); }
+  .metric-label { font-size: 11px; color: var(--text-2); margin-bottom: 4px; }
+  .metric-value { font-size: 20px; font-weight: 600; }
+  .metric-value.green { color: var(--green); }
+  .metric-value.red { color: var(--red); }
+  .card { background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); margin-bottom: 16px; overflow: hidden; }
+  .card-header { padding: 14px 16px 0; font-size: 12px; font-weight: 500; color: var(--text-2); letter-spacing: 0.04em; }
+  .form-body { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .form-row { display: flex; gap: 8px; }
+  input, select { width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 0.5px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; -webkit-appearance: none; }
+  input:focus, select:focus { outline: none; border-color: var(--blue); }
+  .btn { padding: 11px 16px; border-radius: var(--radius-sm); border: none; font-size: 15px; font-weight: 500; cursor: pointer; }
+  .btn-primary { background: var(--blue); color: #fff; width: 100%; }
+  .btn-primary:active { opacity: 0.85; }
+  .tabs { display: flex; background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 4px; margin-bottom: 16px; gap: 4px; }
+  .tab { flex: 1; text-align: center; padding: 8px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; color: var(--text-2); cursor: pointer; border: none; background: transparent; }
+  .tab.active { background: var(--bg); color: var(--text); }
+  .log-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 0.5px solid var(--border); }
+  .log-item:last-child { border-bottom: none; }
+  .log-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .icon-self { background: #F1EFE8; }
+  .icon-paid { background: #EAF3DE; }
+  .icon-debt { background: #FCEBEB; }
+  .log-info { flex: 1; min-width: 0; }
+  .log-item-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .log-item-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+  .log-amount { text-align: right; flex-shrink: 0; }
+  .log-amount-main { font-size: 15px; font-weight: 600; }
+  .log-amount-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+  .del-btn { background: none; border: none; color: var(--text-3); font-size: 18px; padding: 4px; cursor: pointer; flex-shrink: 0; }
+  .empty { text-align: center; color: var(--text-3); font-size: 14px; padding: 40px 20px; }
+  .chart-section { padding: 14px 16px; }
+  .chart-label { font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 10px; }
+  .chart-wrap { position: relative; width: 100%; height: 200px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  hr.divider { border: none; border-top: 0.5px solid var(--border); }
+  #partner-row { display: none; }
+  #other-amount-row { display: none; }
+  .hint { font-size: 12px; color: var(--text-3); margin-top: -4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>記帳本</h1>
+</div>
+
+<div class="content">
+  <div class="metric-grid" id="metrics"></div>
+
+  <div class="card">
+    <div class="card-header">新增記錄</div>
+    <div class="form-body">
+      <input id="inp-item" type="text" placeholder="項目（如：晚餐）" />
+      <input id="inp-amount" type="number" placeholder="我付出的總金額" inputmode="decimal" />
+      <select id="inp-type" onchange="togglePartner()">
+        <option value="self">純自費（全部算我的）</option>
+        <option value="paid">我墊對方（我先付，對方欠我）</option>
+        <option value="debt">對方墊我（對方先付，我欠對方）</option>
+      </select>
+      <div id="partner-row">
+        <input id="inp-partner" type="text" placeholder="對方名字" />
+      </div>
+      <div id="other-amount-row">
+        <input id="inp-other-amount" type="number" placeholder="對方應付金額" inputmode="decimal" />
+        <div class="hint">只填對方欠你的部分，不確定就填總額</div>
+      </div>
+      <button class="btn btn-primary" onclick="addRecord()">新增記錄</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('log')">流水帳</button>
+    <button class="tab" onclick="switchTab('chart')">圖表</button>
+  </div>
+
+  <div id="tab-log">
+    <div class="card" id="log-card">
+      <div id="log-body"></div>
+      <div id="log-empty" class="empty">尚無記錄，新增第一筆吧</div>
+    </div>
+  </div>
+
+  <div id="tab-chart" style="display:none;">
+    <div class="card">
+      <div class="chart-section">
+        <div class="chart-label">支出分佈</div>
+        <div class="chart-wrap"><canvas id="pieChart" role="img" aria-label="各類型支出比例">支出分佈</canvas></div>
+        <div class="legend" id="pie-legend"></div>
+      </div>
+      <hr class="divider" />
+      <div class="chart-section">
+        <div class="chart-label">每日支出</div>
+        <div class="chart-wrap" id="bar-wrap"><canvas id="barChart" role="img" aria-label="每日支出">每日支出</canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let records = JSON.parse(localStorage.getItem('pwa_records') || '[]');
+let pieInst = null, barInst = null, currentTab = 'log';
+
+function save() { localStorage.setItem('pwa_records', JSON.stringify(records)); }
+
+const GAS_URL = 'YOUR_GAS_DEPLOY_URL'; // ← 貼上你的 GAS 部署網址
+const PWA_SECRET = 'YOUR_SECRET_KEY';  // ← 跟 GAS 裡的密鑰一致
+
+function togglePartner() {
+  const t = document.getElementById('inp-type').value;
+  const notSelf = t !== 'self';
+  document.getElementById('partner-row').style.display = notSelf ? 'block' : 'none';
+  document.getElementById('other-amount-row').style.display = notSelf ? 'block' : 'none';
+}
+
+function addRecord() {
+  const item = document.getElementById('inp-item').value.trim();
+  const amount = parseFloat(document.getElementById('inp-amount').value);
+  const type = document.getElementById('inp-type').value;
+  const partner = document.getElementById('inp-partner').value.trim() || '對方';
+  const otherAmount = parseFloat(document.getElementById('inp-other-amount').value) || 0;
+
+  if (!item || !amount || amount <= 0) return;
+  if (type !== 'self' && otherAmount <= 0) {
+    alert('請填寫對方應付金額');
+    return;
+  }
+
+  const now = new Date();
+  records.unshift({
+    id: Date.now(),
+    date: now.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }),
+    item,
+    amount,         // 我付出的總金額
+    otherAmount,    // 對方應付金額（直接輸入，不推算）
+    myAmount: type === 'self' ? amount : +(amount - otherAmount).toFixed(2),
+    type,
+    partner: type !== 'self' ? partner : ''
+  });
+  save();
+  syncToSheet(records[0]);
+  document.getElementById('inp-item').value = '';
+  document.getElementById('inp-amount').value = '';
+  document.getElementById('inp-other-amount').value = '';
+  document.getElementById('inp-type').value = 'self';
+  document.getElementById('partner-row').style.display = 'none';
+  document.getElementById('other-amount-row').style.display = 'none';
+  render();
+}
+
+async function syncToSheet(r) {
+  if (!GAS_URL || GAS_URL === 'YOUR_GAS_DEPLOY_URL') return;
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        source: 'pwa',
+        secret: PWA_SECRET,
+        payer: '我',
+        debtor: r.type === 'paid' ? r.partner : (r.type === 'debt' ? '我' : ''),
+        item: r.item,
+        amount: r.amount,
+        otherAmount: r.otherAmount,
+        myAmount: r.myAmount
+      })
+    });
+  } catch (err) {
+    console.warn('同步失敗，僅儲存本機', err);
+  }
+}
+
+function deleteRecord(id) {
+  if (!confirm('確定刪除這筆記錄？')) return;
+  records = records.filter(r => r.id !== id);
+  save(); render();
+}
+
+function calcMetrics() {
+  let spend = 0, paid = 0, debt = 0;
+  records.forEach(r => {
+    if (r.type === 'self') spend += r.amount;
+    if (r.type === 'paid') { spend += r.myAmount || 0; paid += r.otherAmount || 0; }
+    if (r.type === 'debt') { debt += r.otherAmount || 0; }
+  });
+  return { spend, paid, debt, net: paid - debt };
+}
+
+function renderMetrics() {
+  const m = calcMetrics();
+  const netColor = m.net >= 0 ? 'green' : 'red';
+  const netLabel = m.net >= 0 ? '可收回' : '需還款';
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric"><div class="metric-label">實際花費</div><div class="metric-value">$${m.spend.toFixed(0)}</div></div>
+    <div class="metric"><div class="metric-label">債權</div><div class="metric-value green">$${m.paid.toFixed(0)}</div></div>
+    <div class="metric"><div class="metric-label">債務</div><div class="metric-value red">$${m.debt.toFixed(0)}</div></div>
+    <div class="metric"><div class="metric-label">${netLabel}</div><div class="metric-value ${netColor}">$${Math.abs(m.net).toFixed(0)}</div></div>
+  `;
+}
+
+function renderLog() {
+  const body = document.getElementById('log-body');
+  const empty = document.getElementById('log-empty');
+  if (records.length === 0) { body.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  const icons = { self: '🧾', paid: '💸', debt: '📥' };
+  const iconClass = { self: 'icon-self', paid: 'icon-paid', debt: 'icon-debt' };
+  const typeLabel = { self: '自費', paid: `墊款`, debt: `被墊` };
+  body.innerHTML = records.map(r => `
+    <div class="log-item">
+      <div class="log-icon ${iconClass[r.type]}">${icons[r.type]}</div>
+      <div class="log-info">
+        <div class="log-item-name">${r.item}</div>
+        <div class="log-item-sub">${r.date} · ${typeLabel[r.type]}${r.partner ? ' · ' + r.partner : ''}</div>
+      </div>
+      <div class="log-amount">
+        <div class="log-amount-main">$${r.amount}</div>
+        ${r.type !== 'self' ? `<div class="log-amount-sub">對方 $${r.otherAmount}</div>` : ''}
+      </div>
+      <button class="del-btn" onclick="deleteRecord(${r.id})">×</button>
+    </div>
+  `).join('');
+}
+
+function renderCharts() {
+  const selfTotal = records.filter(r=>r.type==='self').reduce((s,r)=>s+r.perPerson,0);
+  const paidTotal = records.filter(r=>r.type==='paid').reduce((s,r)=>s+r.amount,0);
+  const debtTotal = records.filter(r=>r.type==='debt').reduce((s,r)=>s+r.perPerson,0);
+
+  if (pieInst) pieInst.destroy();
+  pieInst = new Chart(document.getElementById('pieChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['純自費', '代墊對方', '被對方墊'],
+      datasets: [{ data: [+selfTotal.toFixed(2), +paidTotal.toFixed(2), +debtTotal.toFixed(2)],
+        backgroundColor: ['#5DCAA5','#378ADD','#D85A30'], borderWidth: 0 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+
+  const colors = ['#5DCAA5','#378ADD','#D85A30'];
+  document.getElementById('pie-legend').innerHTML = ['純自費','代墊對方','被對方墊'].map((l,i)=>`
+    <div class="legend-item"><div class="legend-dot" style="background:${colors[i]}"></div>${l}</div>
+  `).join('');
+
+  const dayMap = {};
+  records.forEach(r => {
+    if (!dayMap[r.date]) dayMap[r.date] = 0;
+    if (r.type !== 'debt') dayMap[r.date] += r.perPerson;
+  });
+  const days = Object.keys(dayMap).reverse();
+  const barH = Math.max(200, days.length * 44 + 60);
+  document.getElementById('bar-wrap').style.height = barH + 'px';
+
+  if (barInst) barInst.destroy();
+  barInst = new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: days,
+      datasets: [{ data: days.map(d=>+dayMap[d].toFixed(2)),
+        backgroundColor: '#378ADD', borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { ticks: { callback: v => '$'+v } }, y: { ticks: { autoSkip: false } } }
+    }
+  });
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-log').style.display = tab === 'log' ? 'block' : 'none';
+  document.getElementById('tab-chart').style.display = tab === 'chart' ? 'block' : 'none';
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='log')||(i===1&&tab==='chart')));
+  if (tab === 'chart') renderCharts();
+}
+
+function render() { renderMetrics(); renderLog(); if (currentTab === 'chart') renderCharts(); }
+render();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+</body>
+</html>
