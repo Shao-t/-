@@ -3,280 +3,215 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#ffffff" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="記帳本" />
-<link rel="manifest" href="manifest.json" />
-<link rel="apple-touch-icon" href="icon-192.png" />
-<title>記帳本</title>
+<title>旅遊共用記帳本</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #f5f5f3;
-    --surface: #ffffff;
-    --border: rgba(0,0,0,0.1);
-    --text: #1a1a1a;
-    --text-2: #666;
-    --text-3: #999;
-    --green: #1D9E75;
-    --red: #E24B4A;
-    --blue: #378ADD;
-    --radius: 14px;
-    --radius-sm: 8px;
+    --bg: #f5f5f3; --surface: #ffffff; --border: rgba(0,0,0,0.1);
+    --text: #1a1a1a; --text-2: #666; --blue: #378ADD; --green: #1D9E75; --red: #E24B4A;
+    --radius: 14px; --radius-sm: 8px;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #111;
-      --surface: #1e1e1e;
-      --border: rgba(255,255,255,0.1);
-      --text: #f0f0f0;
-      --text-2: #aaa;
-      --text-3: #666;
-    }
+    :root { --bg: #111; --surface: #1e1e1e; --border: rgba(255,255,255,0.1); --text: #f0f0f0; --text-2: #aaa; }
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; padding-bottom: env(safe-area-inset-bottom); }
-  .header { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 16px 20px; padding-top: calc(16px + env(safe-area-inset-top)); position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; }
-  .header h1 { font-size: 18px; font-weight: 600; }
-  .user-tag { font-size: 12px; color: var(--blue); background: var(--bg); padding: 4px 8px; border-radius: 20px; border: 0.5px solid var(--border); }
+  body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 30px; }
+  .header { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+  .user-tag { font-size: 12px; color: var(--blue); background: var(--bg); padding: 4px 10px; border-radius: 20px; border: 0.5px solid var(--border); cursor: pointer; }
   .content { padding: 16px; max-width: 600px; margin: 0 auto; }
+  
+  /* 數據面板 */
   .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .metric { background: var(--surface); border-radius: var(--radius); padding: 14px; border: 0.5px solid var(--border); }
+  .metric { background: var(--surface); border-radius: var(--radius); padding: 12px; border: 0.5px solid var(--border); }
   .metric-label { font-size: 11px; color: var(--text-2); margin-bottom: 4px; }
-  .metric-value { font-size: 20px; font-weight: 600; }
-  .metric-value.green { color: var(--green); }
-  .metric-value.red { color: var(--red); }
-  .card { background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); margin-bottom: 16px; overflow: hidden; }
-  .card-header { padding: 14px 16px 0; font-size: 12px; font-weight: 500; color: var(--text-2); letter-spacing: 0.04em; }
-  .form-body { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
-  input, select { width: 100%; padding: 10px 12px; border-radius: var(--radius-sm); border: 0.5px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; -webkit-appearance: none; }
-  input:focus, select:focus { outline: none; border-color: var(--blue); }
-  .btn { padding: 11px 16px; border-radius: var(--radius-sm); border: none; font-size: 15px; font-weight: 500; cursor: pointer; }
-  .btn-primary { background: var(--blue); color: #fff; width: 100%; }
-  .btn-primary:active { opacity: 0.85; }
-  .tabs { display: flex; background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 4px; margin-bottom: 16px; gap: 4px; }
-  .tab { flex: 1; text-align: center; padding: 8px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; color: var(--text-2); cursor: pointer; border: none; background: transparent; }
-  .tab.active { background: var(--bg); color: var(--text); }
-  .log-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 0.5px solid var(--border); }
-  .log-item:last-child { border-bottom: none; }
-  .log-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-  .icon-self { background: #F1EFE8; }
-  .icon-paid { background: #EAF3DE; }
-  .icon-debt { background: #FCEBEB; }
-  .log-info { flex: 1; min-width: 0; }
-  .log-item-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .log-item-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
-  .log-amount { text-align: right; flex-shrink: 0; }
-  .log-amount-main { font-size: 15px; font-weight: 600; }
-  .log-amount-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
-  .del-btn { background: none; border: none; color: var(--text-3); font-size: 18px; padding: 4px; cursor: pointer; flex-shrink: 0; }
-  .empty { text-align: center; color: var(--text-3); font-size: 14px; padding: 40px 20px; }
-  .chart-section { padding: 14px 16px; }
-  .chart-label { font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 10px; }
-  .chart-wrap { position: relative; width: 100%; height: 200px; }
-  #partner-row, #other-amount-row { display: none; }
-  .hint { font-size: 12px; color: var(--text-3); margin-top: -4px; }
+  .metric-value { font-size: 18px; font-weight: 600; }
+  .settle-card { grid-column: span 2; background: #eef6ff; border: 1px dashed var(--blue); color: var(--blue); }
+
+  /* 表單樣式 */
+  .card { background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); margin-bottom: 16px; padding: 16px; }
+  .form-group { margin-bottom: 12px; }
+  label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 6px; font-weight: 500; }
+  .input-row { display: flex; gap: 8px; }
+  input, select { width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 0.5px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; }
+  .currency-hint { font-size: 12px; color: var(--blue); margin-top: 4px; font-weight: 500; }
+  .btn-primary { background: var(--blue); color: #fff; border: none; width: 100%; padding: 14px; border-radius: var(--radius-sm); font-size: 16px; font-weight: 600; margin-top: 8px; cursor: pointer; }
+  
+  /* 流水帳 */
+  .log-item { display: flex; align-items: center; padding: 12px; border-bottom: 0.5px solid var(--border); background: var(--surface); }
+  .log-info { flex: 1; }
+  .log-name { font-size: 15px; font-weight: 500; }
+  .log-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+  .log-amount { text-align: right; }
+  .amt-twd { font-weight: 600; color: var(--text); }
+  .amt-ori { font-size: 11px; color: var(--text-3); }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>記帳本</h1>
-  <div id="user-display" class="user-tag" onclick="resetUserName()">設定中...</div>
+  <h1>🌍 旅遊記帳</h1>
+  <div id="user-display" class="user-tag" onclick="resetUserName()">設定名字...</div>
 </div>
 
 <div class="content">
-  <div class="metric-grid" id="metrics"></div>
+  <div class="metric-grid">
+    <div class="metric settle-card">
+      <div class="metric-label">💰 結算摘要 (誰該給誰)</div>
+      <div id="settle-summary" class="metric-value" style="font-size:16px;">計算中...</div>
+    </div>
+    <div class="metric"><div class="metric-label">我已支付 (總和)</div><div id="m-total-paid" class="metric-value">$0</div></div>
+    <div class="metric"><div class="metric-label">我的實際支出</div><div id="m-my-spend" class="metric-value">$0</div></div>
+  </div>
 
   <div class="card">
-    <div class="card-header">新增記錄</div>
-    <div class="form-body">
-      <input id="inp-item" type="text" placeholder="項目（如：晚餐）" />
-      <input id="inp-amount" type="number" placeholder="我付出的總金額" inputmode="decimal" />
-      <select id="inp-type" onchange="togglePartner()">
-        <option value="self">純自費（全部算我的）</option>
-        <option value="paid">我墊對方（我先付，對方欠我）</option>
-        <option value="debt">對方墊我（對方先付，我欠對方）</option>
-      </select>
-      <div id="partner-row">
-        <input id="inp-partner" type="text" placeholder="對方名字" />
-      </div>
-      <div id="other-amount-row">
-        <input id="inp-other-amount" type="number" placeholder="對方應付金額" inputmode="decimal" />
-        <div class="hint">只填對方欠你的部分，不確定就填總額</div>
-      </div>
-      <button class="btn btn-primary" onclick="addRecord()">新增記錄</button>
-    </div>
-  </div>
-
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('log')">流水帳</button>
-    <button class="tab" onclick="switchTab('chart')">圖表</button>
-  </div>
-
-  <div id="tab-log">
-    <div class="card" id="log-card">
-      <div id="log-body"></div>
-      <div id="log-empty" class="empty">尚無記錄，新增第一筆吧</div>
-    </div>
-  </div>
-
-  <div id="tab-chart" style="display:none;">
-    <div class="card">
-      <div class="chart-section">
-        <div class="chart-label">支出分佈</div>
-        <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
-        <div id="pie-legend" style="margin-top:10px; display:flex; gap:10px; font-size:12px;"></div>
+    <div class="form-group">
+      <label>項目與幣別</label>
+      <div class="input-row">
+        <input id="inp-item" type="text" placeholder="去哪鵝？(如:勝尾寺)" style="flex:2" />
+        <select id="inp-cur" style="flex:1" onchange="updateExchangeHint()">
+          <option value="TWD">台幣 TWD</option>
+          <option value="JPY">日幣 JPY</option>
+          <option value="IDR">盾 IDR</option>
+        </select>
       </div>
     </div>
+
+    <div class="form-group">
+      <label>金額 (輸入原幣)</label>
+      <input id="inp-amount" type="number" placeholder="輸入金額" inputmode="decimal" oninput="updateExchangeHint()" />
+      <div id="exchange-hint" class="currency-hint"></div>
+    </div>
+
+    <div class="form-group">
+      <label>誰付錢？ & 分帳方式</label>
+      <div class="input-row">
+        <select id="inp-payer">
+          <option value="me">我付的</option>
+          <option value="friend">朋友付的</option>
+        </select>
+        <select id="inp-split">
+          <option value="half">兩人平分</option>
+          <option value="all-me">全算我的</option>
+          <option value="all-friend">全算朋友的</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="addRecord()">新增旅遊支出</button>
   </div>
+
+  <div id="log-body"></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-let records = JSON.parse(localStorage.getItem('pwa_records') || '[]');
+// --- 設定區 ---
+const GAS_URL = '你的GAS網址'; 
+const PWA_SECRET = '289019';
+const RATES = { TWD: 1, JPY: 0.215, IDR: 0.0021 }; // 可手動更新匯率
+
+let records = JSON.parse(localStorage.getItem('pwa_travel_v1') || '[]');
 let userName = localStorage.getItem('pwa_user_name') || '';
-let pieInst = null, barInst = null, currentTab = 'log';
 
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyEprjtdMHz9oyQlU0THAjCaY7PQblPfheoNK5cUm4gjx1k-cb4wJBUQZzq-scEXuWewA/exec'; 
-const PWA_SECRET = '289019';  
+function updateExchangeHint() {
+  const amt = parseFloat(document.getElementById('inp-amount').value) || 0;
+  const cur = document.getElementById('inp-cur').value;
+  const twd = Math.round(amt * RATES[cur]);
+  document.getElementById('exchange-hint').innerText = cur === 'TWD' ? '' : `≈ 台幣 $${twd} (匯率 ${RATES[cur]})`;
+}
 
-// --- 名字管理邏輯 ---
 function checkUser() {
   if (!userName) {
-    userName = prompt("請輸入您的名字（用於共用辨識）：") || "未命名";
+    userName = prompt("出國囉！請輸入你的名字：") || "旅人";
     localStorage.setItem('pwa_user_name', userName);
   }
-  document.getElementById('user-display').innerText = `記帳人：${userName}`;
-}
-
-function resetUserName() {
-  const newName = prompt("更換記帳人名字：", userName);
-  if (newName) {
-    userName = newName;
-    localStorage.setItem('pwa_user_name', userName);
-    document.getElementById('user-display').innerText = `記帳人：${userName}`;
-  }
-}
-
-function save() { localStorage.setItem('pwa_records', JSON.stringify(records)); }
-
-function togglePartner() {
-  const t = document.getElementById('inp-type').value;
-  const notSelf = t !== 'self';
-  document.getElementById('partner-row').style.display = notSelf ? 'block' : 'none';
-  document.getElementById('other-amount-row').style.display = notSelf ? 'block' : 'none';
+  document.getElementById('user-display').innerText = `👤 ${userName}`;
 }
 
 function addRecord() {
   const item = document.getElementById('inp-item').value.trim();
-  const amount = parseFloat(document.getElementById('inp-amount').value);
-  const type = document.getElementById('inp-type').value;
-  const partner = document.getElementById('inp-partner').value.trim() || '對方';
-  const otherAmount = parseFloat(document.getElementById('inp-other-amount').value) || 0;
+  const oriAmt = parseFloat(document.getElementById('inp-amount').value);
+  const cur = document.getElementById('inp-cur').value;
+  const payer = document.getElementById('inp-payer').value;
+  const split = document.getElementById('inp-split').value;
 
-  if (!item || isNaN(amount) || amount <= 0) return;
+  if (!item || isNaN(oriAmt)) return;
 
-  const now = new Date();
+  const twdAmt = +(oriAmt * RATES[cur]).toFixed(2);
+  let shareMe = 0, shareFriend = 0;
+
+  if (split === 'half') { shareMe = twdAmt / 2; shareFriend = twdAmt / 2; }
+  else if (split === 'all-me') { shareMe = twdAmt; shareFriend = 0; }
+  else { shareMe = 0; shareFriend = twdAmt; }
+
   const newRec = {
     id: Date.now(),
-    date: now.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }),
-    item,
-    amount,
-    otherAmount,
-    myAmount: type === 'self' ? amount : +(amount - otherAmount).toFixed(2),
-    type,
-    partner: type !== 'self' ? partner : '',
-    creator: userName // 記錄這筆是誰寫的
+    date: new Date().toLocaleDateString(),
+    item, cur, oriAmt, twdAmt, payer, split, shareMe, shareFriend,
+    creator: userName
   };
 
   records.unshift(newRec);
-  save();
+  localStorage.setItem('pwa_travel_v1', JSON.stringify(records));
   syncToSheet(newRec);
-  
+  render();
   document.getElementById('inp-item').value = '';
   document.getElementById('inp-amount').value = '';
-  document.getElementById('inp-other-amount').value = '';
-  render();
 }
 
 async function syncToSheet(r) {
-  if (!GAS_URL || GAS_URL.includes('YOUR_GAS')) return;
-  try {
-    await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify({
-        secret: PWA_SECRET,
-        item: r.item,
-        amount: r.amount,
-        otherAmount: r.otherAmount,
-        myAmount: r.myAmount,
-        type: r.type,
-        partner: r.partner,
-        user: userName // 傳送存在手機裡的名字
-      })
-    });
-  } catch (err) { console.warn('同步失敗', err); }
-}
-
-function calcMetrics() {
-  let spend = 0, paid = 0, debt = 0;
-  records.forEach(r => {
-    if (r.type === 'self') spend += r.amount;
-    else if (r.type === 'paid') { spend += r.myAmount; paid += r.otherAmount; }
-    else if (r.type === 'debt') { debt += r.otherAmount; }
+  if (!GAS_URL) return;
+  fetch(GAS_URL, {
+    method: 'POST', mode: 'no-cors',
+    body: JSON.stringify({ secret: PWA_SECRET, ...r, user: userName })
   });
-  return { spend, paid, debt, net: paid - debt };
 }
 
-function renderMetrics() {
-  const m = calcMetrics();
-  const netLabel = m.net >= 0 ? '可收回' : '需還款';
-  document.getElementById('metrics').innerHTML = `
-    <div class="metric"><div class="metric-label">實際花費</div><div class="metric-value">$${m.spend.toFixed(0)}</div></div>
-    <div class="metric"><div class="metric-label">債權</div><div class="metric-value green">$${m.paid.toFixed(0)}</div></div>
-    <div class="metric"><div class="metric-label">債務</div><div class="metric-value red">$${m.debt.toFixed(0)}</div></div>
-    <div class="metric"><div class="metric-label">${netLabel}</div><div class="metric-value ${m.net>=0?'green':'red'}">$${Math.abs(m.net).toFixed(0)}</div></div>
-  `;
-}
+function render() {
+  checkUser();
+  const logBody = document.getElementById('log-body');
+  let myPaidSum = 0, mySpendSum = 0, friendOweMe = 0, meOweFriend = 0;
 
-function renderLog() {
-  const body = document.getElementById('log-body');
-  const empty = document.getElementById('log-empty');
-  if (records.length === 0) { body.innerHTML = ''; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  const icons = { self: '🧾', paid: '💸', debt: '📥' };
-  body.innerHTML = records.map(r => `
-    <div class="log-item">
-      <div class="log-icon icon-${r.type}">${icons[r.type]}</div>
-      <div class="log-info">
-        <div class="log-item-name">${r.item}</div>
-        <div class="log-item-sub">${r.date} · ${r.partner || '自費'} · 記帳人:${r.creator || '未知'}</div>
+  logBody.innerHTML = records.map(r => {
+    // 統計邏輯
+    if (r.payer === 'me') {
+      myPaidSum += r.twdAmt;
+      mySpendSum += r.shareMe;
+      friendOweMe += r.shareFriend;
+    } else {
+      mySpendSum += r.shareMe;
+      meOweFriend += r.shareMe;
+    }
+
+    return `
+      <div class="log-item">
+        <div class="log-info">
+          <div class="log-name">${r.item}</div>
+          <div class="log-sub">${r.date} · ${r.payer==='me'?'我付':'朋友付'} · ${r.cur} ${r.oriAmt}</div>
+        </div>
+        <div class="log-amount">
+          <div class="amt-twd">$${r.twdAmt}</div>
+          <div class="amt-ori">${r.split==='half'?'平分':'獨付'}</div>
+        </div>
       </div>
-      <div class="log-amount">
-        <div class="log-amount-main">$${r.amount}</div>
-        ${r.type !== 'self' ? `<div class="log-amount-sub">對方 $${r.otherAmount}</div>` : ''}
-      </div>
-      <button class="del-btn" onclick="deleteRecord(${r.id})">×</button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+
+  // 更新面板
+  document.getElementById('m-total-paid').innerText = `$${Math.round(myPaidSum)}`;
+  document.getElementById('m-my-spend').innerText = `$${Math.round(mySpendSum)}`;
+  
+  const diff = friendOweMe - meOweFriend;
+  const settleSummary = document.getElementById('settle-summary');
+  if (diff > 0) settleSummary.innerText = `朋友 應給予你 $${Math.round(diff)}`;
+  else if (diff < 0) settleSummary.innerText = `你 應給予朋友 $${Math.round(Math.abs(diff))}`;
+  else settleSummary.innerText = `帳目平衡中`;
 }
 
-function deleteRecord(id) {
-  if (!confirm('確定刪除？')) return;
-  records = records.filter(r => r.id !== id);
-  save(); render();
+function resetUserName() {
+  localStorage.removeItem('pwa_user_name');
+  userName = '';
+  checkUser();
 }
 
-function switchTab(tab) {
-  currentTab = tab;
-  document.getElementById('tab-log').style.display = tab === 'log' ? 'block' : 'none';
-  document.getElementById('tab-chart').style.display = tab === 'chart' ? 'block' : 'none';
-  if (tab === 'chart') renderCharts();
-}
-
-function render() { checkUser(); renderMetrics(); renderLog(); }
 render();
 </script>
 </body>
