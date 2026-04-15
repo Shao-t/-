@@ -66,11 +66,11 @@
     <div class="form-group">
       <label>項目與幣別</label>
       <div class="input-row">
-        <input id="inp-item" type="text" placeholder="去哪鵝？(如:勝尾寺)" style="flex:2" />
+        <input id="inp-item" type="text" placeholder="輸入金額" style="flex:2" />
         <select id="inp-cur" style="flex:1" onchange="updateExchangeHint()">
           <option value="TWD">台幣 TWD</option>
           <option value="JPY">日幣 JPY</option>
-          <option value="IDR">盾 IDR</option>
+          <option value="IDR">印尼盾 IDR</option>
         </select>
       </div>
     </div>
@@ -90,8 +90,8 @@
         </select>
         <select id="inp-split">
           <option value="half">兩人平分</option>
-          <option value="all-me">全算我的</option>
-          <option value="all-friend">全算朋友的</option>
+          <option value="all-me">算我的</option>
+          <option value="all-friend">算朋友的</option>
         </select>
       </div>
     </div>
@@ -104,7 +104,7 @@
 
 <script>
 // --- 設定區 ---
-const GAS_URL = '你的GAS網址'; 
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbz-y3Gx-jNEN85cL-r7v_urwFgW2-azGQ3XzBCOjplUNEY7o4IiDMfKvGjmc6mrFf_m/exec'; 
 const PWA_SECRET = '289019';
 const RATES = { TWD: 1, JPY: 0.215, IDR: 0.0021 }; // 可手動更新匯率
 
