@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>旅遊共用記帳本</title>
+<title>旅遊共用記帳本 Pro</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -26,7 +26,7 @@
   .metric-value { font-size: 18px; font-weight: 600; }
   .settle-card { grid-column: span 2; background: #eef6ff; border: 1px dashed var(--blue); color: var(--blue); }
 
-  /* 表單樣式 */
+  /* 表單與按鈕 */
   .card { background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); margin-bottom: 16px; padding: 16px; }
   .form-group { margin-bottom: 12px; }
   label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 6px; font-weight: 500; }
@@ -34,15 +34,18 @@
   input, select { width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 0.5px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; }
   .currency-hint { font-size: 12px; color: var(--blue); margin-top: 4px; font-weight: 500; }
   .btn-primary { background: var(--blue); color: #fff; border: none; width: 100%; padding: 14px; border-radius: var(--radius-sm); font-size: 16px; font-weight: 600; margin-top: 8px; cursor: pointer; }
+  .btn-outline { background: none; border: 1px solid var(--blue); color: var(--blue); width: 100%; padding: 10px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+  .btn-outline:active { background: #eef6ff; }
   
   /* 流水帳 */
-  .log-item { display: flex; align-items: center; padding: 12px; border-bottom: 0.5px solid var(--border); background: var(--surface); }
+  .log-item { display: flex; align-items: center; padding: 12px; border-bottom: 0.5px solid var(--border); background: var(--surface); margin-bottom: 2px; }
   .log-info { flex: 1; }
   .log-name { font-size: 15px; font-weight: 500; }
   .log-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
-  .log-amount { text-align: right; }
+  .log-amount { text-align: right; margin-right: 12px; }
   .amt-twd { font-weight: 600; color: var(--text); }
-  .amt-ori { font-size: 11px; color: var(--text-3); }
+  .amt-ori { font-size: 11px; color: var(--text-2); }
+  .btn-del { background: #fee; color: var(--red); border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -55,72 +58,66 @@
 <div class="content">
   <div class="metric-grid">
     <div class="metric settle-card">
-      <div class="metric-label">💰 結算摘要 (誰該給誰)</div>
-      <div id="settle-summary" class="metric-value" style="font-size:16px;">計算中...</div>
+      <div class="metric-label">💰 最終結算摘要 (淨額)</div>
+      <div id="settle-summary" class="metric-value">計算中...</div>
     </div>
-    <div class="metric"><div class="metric-label">我已支付 (總和)</div><div id="m-total-paid" class="metric-value">$0</div></div>
-    <div class="metric"><div class="metric-label">我的實際支出</div><div id="m-my-spend" class="metric-value">$0</div></div>
+    <div class="metric"><div class="metric-label">我已墊付總額</div><div id="m-total-paid" class="metric-value">$0</div></div>
+    <div class="metric"><div class="metric-label">我應負擔總額</div><div id="m-my-spend" class="metric-value">$0</div></div>
   </div>
 
   <div class="card">
     <div class="form-group">
-      <label>項目與幣別</label>
+      <label>消費項目</label>
       <div class="input-row">
-        <input id="inp-item" type="text" placeholder="輸入金額" style="flex:2" />
+        <input id="inp-item" type="text" placeholder="項目" style="flex:2" />
         <select id="inp-cur" style="flex:1" onchange="updateExchangeHint()">
+          <option value="IDR">印尼盾 IDR</option>
           <option value="TWD">台幣 TWD</option>
           <option value="JPY">日幣 JPY</option>
-          <option value="IDR">印尼盾 IDR</option>
         </select>
       </div>
     </div>
-
     <div class="form-group">
-      <label>金額 (輸入原幣)</label>
-      <input id="inp-amount" type="number" placeholder="輸入金額" inputmode="decimal" oninput="updateExchangeHint()" />
+      <label>金額 (原幣)</label>
+      <input id="inp-amount" type="number" placeholder="0.00" inputmode="decimal" oninput="updateExchangeHint()" />
       <div id="exchange-hint" class="currency-hint"></div>
     </div>
-
     <div class="form-group">
-      <label>誰付錢？ & 分帳方式</label>
+      <label>支付與分帳</label>
       <div class="input-row">
         <select id="inp-payer">
-          <option value="me">我付的</option>
-          <option value="friend">朋友付的</option>
+          <option value="me">我支付的</option>
+          <option value="friend">朋友支付的</option>
         </select>
         <select id="inp-split">
           <option value="half">兩人平分</option>
-          <option value="all-me">算我的</option>
-          <option value="all-friend">算朋友的</option>
+          <option value="all-me">全算我的</option>
+          <option value="all-friend">全算朋友</option>
         </select>
       </div>
     </div>
-
-    <button class="btn-primary" onclick="addRecord()">新增旅遊支出</button>
+    <button class="btn-primary" onclick="addRecord()">新增記帳紀錄</button>
+    <button class="btn-outline" onclick="exportToCSV()">📥 匯出 CSV 檔案 (Excel)</button>
   </div>
 
   <div id="log-body"></div>
 </div>
 
 <script>
-// --- 設定區 ---
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbz-y3Gx-jNEN85cL-r7v_urwFgW2-azGQ3XzBCOjplUNEY7o4IiDMfKvGjmc6mrFf_m/exec'; 
-const PWA_SECRET = '289019';
-const RATES = { TWD: 1, JPY: 0.215, IDR: 0.0021 }; // 可手動更新匯率
-
-let records = JSON.parse(localStorage.getItem('pwa_travel_v1') || '[]');
+const RATES = { TWD: 1, JPY: 0.215, IDR: 0.0021 }; 
+let records = JSON.parse(localStorage.getItem('pwa_travel_v2') || '[]');
 let userName = localStorage.getItem('pwa_user_name') || '';
 
 function updateExchangeHint() {
   const amt = parseFloat(document.getElementById('inp-amount').value) || 0;
   const cur = document.getElementById('inp-cur').value;
   const twd = Math.round(amt * RATES[cur]);
-  document.getElementById('exchange-hint').innerText = cur === 'TWD' ? '' : `≈ 台幣 $${twd} (匯率 ${RATES[cur]})`;
+  document.getElementById('exchange-hint').innerText = cur === 'TWD' ? '' : `≈ 台幣 $${twd.toLocaleString()} (${RATES[cur]})`;
 }
 
 function checkUser() {
   if (!userName) {
-    userName = prompt("出國囉！請輸入你的名字：") || "旅人";
+    userName = prompt("請輸入你的名字：") || "我";
     localStorage.setItem('pwa_user_name', userName);
   }
   document.getElementById('user-display').innerText = `👤 ${userName}`;
@@ -136,82 +133,80 @@ function addRecord() {
   if (!item || isNaN(oriAmt)) return;
 
   const twdAmt = +(oriAmt * RATES[cur]).toFixed(2);
-  let shareMe = 0, shareFriend = 0;
+  let shareMe = 0;
+  if (split === 'half') shareMe = twdAmt / 2;
+  else if (split === 'all-me') shareMe = twdAmt;
+  else if (split === 'all-friend') shareMe = 0;
 
-  if (split === 'half') { shareMe = twdAmt / 2; shareFriend = twdAmt / 2; }
-  else if (split === 'all-me') { shareMe = twdAmt; shareFriend = 0; }
-  else { shareMe = 0; shareFriend = twdAmt; }
-
-  const newRec = {
-    id: Date.now(),
-    date: new Date().toLocaleDateString(),
-    item, cur, oriAmt, twdAmt, payer, split, shareMe, shareFriend,
-    creator: userName
-  };
-
-  records.unshift(newRec);
-  localStorage.setItem('pwa_travel_v1', JSON.stringify(records));
-  syncToSheet(newRec);
-  render();
+  records.unshift({ id: Date.now(), date: new Date().toLocaleDateString(), item, cur, oriAmt, twdAmt, payer, split, shareMe });
+  saveAndRender();
   document.getElementById('inp-item').value = '';
   document.getElementById('inp-amount').value = '';
 }
 
-async function syncToSheet(r) {
-  if (!GAS_URL) return;
-  fetch(GAS_URL, {
-    method: 'POST', mode: 'no-cors',
-    body: JSON.stringify({ secret: PWA_SECRET, ...r, user: userName })
-  });
+function saveAndRender() {
+  localStorage.setItem('pwa_travel_v2', JSON.stringify(records));
+  render();
 }
 
 function render() {
   checkUser();
   const logBody = document.getElementById('log-body');
-  let myPaidSum = 0, mySpendSum = 0, friendOweMe = 0, meOweFriend = 0;
+  let myPaidSum = 0, mySpendSum = 0;
 
   logBody.innerHTML = records.map(r => {
-    // 統計邏輯
-    if (r.payer === 'me') {
-      myPaidSum += r.twdAmt;
-      mySpendSum += r.shareMe;
-      friendOweMe += r.shareFriend;
-    } else {
-      mySpendSum += r.shareMe;
-      meOweFriend += r.shareMe;
-    }
+    if (r.payer === 'me') myPaidSum += r.twdAmt;
+    mySpendSum += r.shareMe;
+    const splitMap = { half: '兩人平分', 'all-me': '全算我的', 'all-friend': '幫人墊款' };
 
     return `
       <div class="log-item">
         <div class="log-info">
           <div class="log-name">${r.item}</div>
-          <div class="log-sub">${r.date} · ${r.payer==='me'?'我付':'朋友付'} · ${r.cur} ${r.oriAmt}</div>
+          <div class="log-sub">${r.date} · ${r.payer==='me'?'你墊付':'朋友付'} · ${r.cur} ${r.oriAmt.toLocaleString()}</div>
         </div>
         <div class="log-amount">
-          <div class="amt-twd">$${r.twdAmt}</div>
-          <div class="amt-ori">${r.split==='half'?'平分':'獨付'}</div>
+          <div class="amt-twd">$${Math.round(r.twdAmt).toLocaleString()}</div>
+          <div class="amt-ori">${splitMap[r.split]}</div>
         </div>
+        <button class="btn-del" onclick="deleteRecord(${r.id})">刪除</button>
       </div>
     `;
   }).join('');
 
-  // 更新面板
-  document.getElementById('m-total-paid').innerText = `$${Math.round(myPaidSum)}`;
-  document.getElementById('m-my-spend').innerText = `$${Math.round(mySpendSum)}`;
-  
-  const diff = friendOweMe - meOweFriend;
-  const settleSummary = document.getElementById('settle-summary');
-  if (diff > 0) settleSummary.innerText = `朋友 應給予你 $${Math.round(diff)}`;
-  else if (diff < 0) settleSummary.innerText = `你 應給予朋友 $${Math.round(Math.abs(diff))}`;
-  else settleSummary.innerText = `帳目平衡中`;
+  const net = myPaidSum - mySpendSum;
+  const settle = document.getElementById('settle-summary');
+  if (Math.abs(net) < 1) {
+    settle.innerText = '✅ 已結清'; settle.style.color = 'var(--green)';
+  } else {
+    settle.innerText = net > 0 ? `朋友還你 $${Math.round(net).toLocaleString()}` : `你還朋友 $${Math.round(Math.abs(net)).toLocaleString()}`;
+    settle.style.color = net > 0 ? 'var(--blue)' : 'var(--red)';
+  }
+  document.getElementById('m-total-paid').innerText = `$${Math.round(myPaidSum).toLocaleString()}`;
+  document.getElementById('m-my-spend').innerText = `$${Math.round(mySpendSum).toLocaleString()}`;
 }
 
-function resetUserName() {
-  localStorage.removeItem('pwa_user_name');
-  userName = '';
-  checkUser();
+function exportToCSV() {
+  if (records.length === 0) return alert("資料庫空空如也");
+  const headers = ["日期", "項目", "原幣", "原幣金額", "台幣總額", "支付者", "分帳方式", "我的負擔"];
+  const csvContent = "\uFEFF" + headers.join(",") + "\n" + 
+    records.map(r => [
+      r.date, 
+      `"${r.item.replace(/"/g, '""')}"`, // 處理逗號與引號
+      r.cur, r.oriAmt, Math.round(r.twdAmt), 
+      r.payer==='me'?'我':'朋友', 
+      r.split, Math.round(r.shareMe)
+    ].join(",")).join("\n");
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `記帳_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
 }
 
+function deleteRecord(id) { if (confirm('刪除？')) { records = records.filter(r => r.id !== id); saveAndRender(); } }
+function resetUserName() { const n = prompt("名字", userName); if (n) { userName = n; localStorage.setItem('pwa_user_name', n); render(); } }
 render();
 </script>
 </body>
