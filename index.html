@@ -51,7 +51,7 @@
 <body>
 
 <div class="header">
-  <h1>🌍 旅遊記帳</h1>
+  <h1>🌍 峇里島Chill到斷片團</h1>
   <div id="user-display" class="user-tag" onclick="resetUserName()">設定名字...</div>
 </div>
 
@@ -67,19 +67,24 @@
 
   <div class="card">
     <div class="form-group">
+      <label>日期與時間</label>
+      <input id="inp-datetime" type="datetime-local" />
+    </div>
+    <div class="form-group">
       <label>消費項目</label>
+      <input id="inp-item" type="text" placeholder="項目" />
+    </div>
+    <div class="form-group">
+      <label>金額 (原幣)</label>
       <div class="input-row">
-        <input id="inp-item" type="text" placeholder="項目" style="flex:2" />
+        <input id="inp-amount" type="number" placeholder="0.00" inputmode="decimal" oninput="updateExchangeHint()" style="flex:2" />
         <select id="inp-cur" style="flex:1" onchange="updateExchangeHint()">
           <option value="IDR">印尼盾 IDR</option>
           <option value="TWD">台幣 TWD</option>
           <option value="JPY">日幣 JPY</option>
+          <option value="USD">美金 USD</option>
         </select>
       </div>
-    </div>
-    <div class="form-group">
-      <label>金額 (原幣)</label>
-      <input id="inp-amount" type="number" placeholder="0.00" inputmode="decimal" oninput="updateExchangeHint()" />
       <div id="exchange-hint" class="currency-hint"></div>
     </div>
     <div class="form-group">
@@ -104,7 +109,7 @@
 </div>
 
 <script>
-const RATES = { TWD: 1, JPY: 0.215, IDR: 0.0021 }; 
+const RATES = { TWD: 1, JPY: 0.215, IDR: 0.0021, USD: 32.5 }; 
 let records = JSON.parse(localStorage.getItem('pwa_travel_v2') || '[]');
 let userName = localStorage.getItem('pwa_user_name') || '';
 
@@ -129,8 +134,9 @@ function addRecord() {
   const cur = document.getElementById('inp-cur').value;
   const payer = document.getElementById('inp-payer').value;
   const split = document.getElementById('inp-split').value;
+  const datetime = document.getElementById('inp-datetime').value;
 
-  if (!item || isNaN(oriAmt)) return;
+  if (!item || isNaN(oriAmt) || !datetime) return;
 
   const twdAmt = +(oriAmt * RATES[cur]).toFixed(2);
   let shareMe = 0;
@@ -138,7 +144,7 @@ function addRecord() {
   else if (split === 'all-me') shareMe = twdAmt;
   else if (split === 'all-friend') shareMe = 0;
 
-  records.unshift({ id: Date.now(), date: new Date().toLocaleDateString(), item, cur, oriAmt, twdAmt, payer, split, shareMe });
+  records.unshift({ id: Date.now(), date: datetime, item, cur, oriAmt, twdAmt, payer, split, shareMe });
   saveAndRender();
   document.getElementById('inp-item').value = '';
   document.getElementById('inp-amount').value = '';
@@ -147,6 +153,11 @@ function addRecord() {
 function saveAndRender() {
   localStorage.setItem('pwa_travel_v2', JSON.stringify(records));
   render();
+}
+
+function formatDateTime(datetimeStr) {
+  const date = new Date(datetimeStr);
+  return date.toLocaleString('zh-TW', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Taipei' });
 }
 
 function render() {
@@ -163,7 +174,7 @@ function render() {
       <div class="log-item">
         <div class="log-info">
           <div class="log-name">${r.item}</div>
-          <div class="log-sub">${r.date} · ${r.payer==='me'?'你墊付':'朋友付'} · ${r.cur} ${r.oriAmt.toLocaleString()}</div>
+          <div class="log-sub">${formatDateTime(r.date)} · ${r.payer==='me'?'你墊付':'朋友付'} · ${r.cur} ${r.oriAmt.toLocaleString()}</div>
         </div>
         <div class="log-amount">
           <div class="amt-twd">$${Math.round(r.twdAmt).toLocaleString()}</div>
@@ -184,6 +195,14 @@ function render() {
   }
   document.getElementById('m-total-paid').innerText = `$${Math.round(myPaidSum).toLocaleString()}`;
   document.getElementById('m-my-spend').innerText = `$${Math.round(mySpendSum).toLocaleString()}`;
+  setDefaultDateTime();
+}
+
+function setDefaultDateTime() {
+  const now = new Date();
+  const eightHoursLater = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const datetime = eightHoursLater.toISOString().slice(0,16);
+  document.getElementById('inp-datetime').value = datetime;
 }
 
 function exportToCSV() {
@@ -191,7 +210,7 @@ function exportToCSV() {
   const headers = ["日期", "項目", "原幣", "原幣金額", "台幣總額", "支付者", "分帳方式", "我的負擔"];
   const csvContent = "\uFEFF" + headers.join(",") + "\n" + 
     records.map(r => [
-      r.date, 
+      formatDateTime(r.date), 
       `"${r.item.replace(/"/g, '""')}"`, // 處理逗號與引號
       r.cur, r.oriAmt, Math.round(r.twdAmt), 
       r.payer==='me'?'我':'朋友', 
