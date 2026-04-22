@@ -1,232 +1,381 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>旅遊共用記帳本 Pro</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #f5f5f3; --surface: #ffffff; --border: rgba(0,0,0,0.1);
-    --text: #1a1a1a; --text-2: #666; --blue: #378ADD; --green: #1D9E75; --red: #E24B4A;
-    --radius: 14px; --radius-sm: 8px;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #111; --surface: #1e1e1e; --border: rgba(255,255,255,0.1); --text: #f0f0f0; --text-2: #aaa; }
-  }
-  body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 30px; }
-  .header { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-  .user-tag { font-size: 12px; color: var(--blue); background: var(--bg); padding: 4px 10px; border-radius: 20px; border: 0.5px solid var(--border); cursor: pointer; }
-  .content { padding: 16px; max-width: 600px; margin: 0 auto; }
-  
-  /* 數據面板 */
-  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .metric { background: var(--surface); border-radius: var(--radius); padding: 12px; border: 0.5px solid var(--border); }
-  .metric-label { font-size: 11px; color: var(--text-2); margin-bottom: 4px; }
-  .metric-value { font-size: 18px; font-weight: 600; }
-  .settle-card { grid-column: span 2; background: #eef6ff; border: 1px dashed var(--blue); color: var(--blue); }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy Birthday!</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #fcfaf8;
+            --text-color: #4a4a4a;
+            --accent-color: #d4a373;
+        }
 
-  /* 表單與按鈕 */
-  .card { background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); margin-bottom: 16px; padding: 16px; }
-  .form-group { margin-bottom: 12px; }
-  label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 6px; font-weight: 500; }
-  .input-row { display: flex; gap: 8px; }
-  input, select { width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 0.5px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; }
-  .currency-hint { font-size: 12px; color: var(--blue); margin-top: 4px; font-weight: 500; }
-  .btn-primary { background: var(--blue); color: #fff; border: none; width: 100%; padding: 14px; border-radius: var(--radius-sm); font-size: 16px; font-weight: 600; margin-top: 8px; cursor: pointer; }
-  .btn-outline { background: none; border: 1px solid var(--blue); color: var(--blue); width: 100%; padding: 10px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-  .btn-outline:active { background: #eef6ff; }
-  
-  /* 流水帳 */
-  .log-item { display: flex; align-items: center; padding: 12px; border-bottom: 0.5px solid var(--border); background: var(--surface); margin-bottom: 2px; }
-  .log-info { flex: 1; }
-  .log-name { font-size: 15px; font-weight: 500; }
-  .log-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
-  .log-amount { text-align: right; margin-right: 12px; }
-  .amt-twd { font-weight: 600; color: var(--text); }
-  .amt-ori { font-size: 11px; color: var(--text-2); }
-  .btn-del { background: #fee; color: var(--red); border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; }
-</style>
+        body { 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            font-family: 'Optima', 'Baskerville', serif; 
+            margin: 0; 
+            padding: 40px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- 背景特效 --- */
+        .plane-container { position: fixed; top: 12%; left: -150px; z-index: -1; pointer-events: none; opacity: 0.6; }
+        .plane { width: 100px; height: auto; animation: flyAcross 18s linear infinite; }
+        @keyframes flyAcross {
+            0% { transform: translate(0, 0) rotate(15deg); left: -150px; }
+            100% { transform: translate(120vw, -50px) rotate(15deg); left: 100%; }
+        }
+
+        .floating-icon { position: fixed; z-index: -2; pointer-events: none; opacity: 0.4; width: 50px; height: auto; animation: slowFloat 8s ease-in-out infinite; }
+        @keyframes slowFloat { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(8deg); } }
+        .icon-p4 { top: 15%; left: 8%; animation-delay: 0s; }
+        .icon-p5 { top: 20%; right: 10%; animation-delay: 2s; }
+        .icon-p6 { bottom: 15%; left: 12%; animation-delay: 4s; }
+        .icon-p7 { bottom: 25%; right: 5%; animation-delay: 6s; }
+
+        /* --- 3D 翻轉卡片設計 (劇院模式) --- */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-gap: 30px;
+            max-width: 1200px;
+            margin: 30px auto;
+            width: 100%;
+        }
+
+        .photo-card {
+            background: transparent;
+            perspective: 1000px;
+            height: 380px; /* 固定高度確保翻轉對齊 */
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s ease;
+        }
+
+        .photo-card.show { opacity: 1; transform: translateY(0); }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .photo-card.is-flipped .card-inner { transform: rotateY(180deg); }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            background: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 核心修改：劇院模式圖片顯示 */
+        .card-front {
+            background: #1a1a1a; /* 黑色背景，類似劇院或畫廊 */
+        }
+        .card-front img { 
+            width: 100%; 
+            height: 330px; /* 增加圖片區域高度 */
+            object-fit: contain; /* 關鍵：完整顯示照片，不裁切，兩側或上下留黑邊 */
+            display: block;
+        }
+        .card-front .caption { 
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 10px; 
+            font-size: 0.85rem; 
+            color: #ccc; /* 配合黑色背景調淡文字顏色 */
+            font-weight: bold; 
+            letter-spacing: 1px;
+            background: rgba(0,0,0,0.5); /* 底部文字遮罩 */
+            box-sizing: border-box;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: #fffefd;
+            padding: 25px;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .card-back h3 { margin-top: 0; font-size: 1.1rem; color: var(--accent-color); border-bottom: 1px solid #eee; padding-bottom: 10px; width: 100%; }
+        .card-back p { line-height: 1.7; font-size: 0.95rem; color: #555; margin-top: 15px; }
+
+        /* --- 遊戲 UI --- */
+        .card { 
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            border: 1px solid rgba(212, 163, 115, 0.2);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+            padding: 40px 30px;
+            margin: 15px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .card h2 { font-size: 1.6rem; color: var(--accent-color); margin-bottom: 20px; }
+        input { border: 2px solid #eee; border-radius: 12px; padding: 14px; font-size: 18px; width: 85%; margin-top: 20px; text-align: center; outline: none; }
+        input:focus { border-color: var(--accent-color); }
+        .hidden { display: none; }
+        
+        .decoration-hearts { display: flex; justify-content: center; gap: 20px; margin: 15px 0; opacity: 0.5; }
+        
+        button {
+            transition: all 0.3s ease;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 16px 45px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(212, 163, 115, 0.3);
+        }
+        button:hover { transform: translateY(-2px); }
+    </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>🌍 峇里島Chill到斷片團</h1>
-  <div id="user-display" class="user-tag" onclick="resetUserName()">設定名字...</div>
-</div>
+    <div class="plane-container"><img src="images/p3.png" class="plane"></div>
+    <img src="images/p4.png" class="floating-icon icon-p4">
+    <img src="images/p5.png" class="floating-icon icon-p5">
+    <img src="images/p6.png" class="floating-icon icon-p6">
+    <img src="images/p7.png" class="floating-icon icon-p7">
 
-<div class="content">
-  <div class="metric-grid">
-    <div class="metric settle-card">
-      <div class="metric-label">💰 最終結算摘要 (淨額)</div>
-      <div id="settle-summary" class="metric-value">計算中...</div>
+    <div id="level1" class="card">
+        <h2>🔒 系統鎖定</h2>
+        <div class="decoration-hearts"><span>💝</span><span>💝</span><span>💝</span></div>
+        <p>關卡 1：兔子的生日 (MMDD)</p>
+        <input type="tel" id="input1" maxlength="4" autofocus>
     </div>
-    <div class="metric"><div class="metric-label">我已墊付總額</div><div id="m-total-paid" class="metric-value">$0</div></div>
-    <div class="metric"><div class="metric-label">我應負擔總額</div><div id="m-my-spend" class="metric-value">$0</div></div>
-  </div>
+    <div id="level2" class="card hidden">
+        <p>💡 關卡 2：第一個國家?</p>
+        <input type="text" id="input2" maxlength="1">
+    </div>
+    <div id="level3" class="card hidden">
+        <p>🍴 關卡 3：最喜歡吃的食物?</p>
+        <input type="text" id="input3" maxlength="1">
+    </div>
+    <div id="level4" class="card hidden">
+        <p>🔢 關卡 4：67 × 4 + 252 = ?</p>
+        <input type="tel" id="input4" maxlength="3">
+    </div>
+    <div id="level5" class="card hidden">
+        <p>✨ 準備好了嗎？</p>
+        <input type="text" id="input5" placeholder="yes" maxlength="3">
+    </div>
 
-  <div class="card">
-    <div class="form-group">
-      <label>日期與時間</label>
-      <input id="inp-datetime" type="datetime-local" />
-    </div>
-    <div class="form-group">
-      <label>消費項目</label>
-      <input id="inp-item" type="text" placeholder="項目" />
-    </div>
-    <div class="form-group">
-      <label>金額 (原幣)</label>
-      <div class="input-row">
-        <input id="inp-amount" type="number" placeholder="0.00" inputmode="decimal" oninput="updateExchangeHint()" style="flex:2" />
-        <select id="inp-cur" style="flex:1" onchange="updateExchangeHint()">
-          <option value="IDR">印尼盾 IDR</option>
-          <option value="TWD">台幣 TWD</option>
-          <option value="JPY">日幣 JPY</option>
-          <option value="USD">美金 USD</option>
-        </select>
-      </div>
-      <div id="exchange-hint" class="currency-hint"></div>
-    </div>
-    <div class="form-group">
-      <label>支付與分帳</label>
-      <div class="input-row">
-        <select id="inp-payer">
-          <option value="me">我支付的</option>
-          <option value="friend">朋友支付的</option>
-        </select>
-        <select id="inp-split">
-          <option value="half">兩人平分</option>
-          <option value="all-me">全算我的</option>
-          <option value="all-friend">全算朋友</option>
-        </select>
-      </div>
-    </div>
-    <button class="btn-primary" onclick="addRecord()">新增記帳紀錄</button>
-    <button class="btn-outline" onclick="exportToCSV()">📥 匯出 CSV 檔案 (Excel)</button>
-  </div>
+    <div id="success" class="hidden" style="width: 100%;">
+        <header style="text-align:center; margin-bottom: 40px;">
+            <h1 style="letter-spacing: 6px; font-weight: 300;">OUR MEMORIES</h1>
+            <p style="color: var(--accent-color);">Tap to see the stories behind.</p>
+        </header>
 
-  <div id="log-body"></div>
-</div>
+        <div class="gallery">
+            <div class="photo-card" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="images/D1.JPG">
+                        <div class="caption">2025 JAN 🇯🇵 OSAKA ➔</div>
+                    </div>
+                    <div class="card-back">
+                        <h3>2025 JAN 🇯🇵 OSAKA</h3>
+                        <p>第一次出國，每天都是特種兵行程，但玩得超級開心、充實。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="images/D2.JPG">
+                        <div class="caption">2025 FEB 🇰🇷 BUSAN ➔</div>
+                    </div>
+                    <div class="card-back">
+                        <h3>2025 FEB 🇰🇷 BUSAN</h3>
+                        <p>謝謝妳總是帶給我這麼多快樂，這張照片紀錄了妳最開心的樣子。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="images/D3.JPG">
+                        <div class="caption">2025 APR 🇸🇬 SINGAPORE ➔</div>
+                    </div>
+                    <div class="card-back">
+                        <h3>2025 APR 🇸🇬 SINGAPORE</h3>
+                        <p>每一次牽手，都是我對妳的承諾。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="images/D4.JPG">
+                        <div class="caption">2025 MAY 🇹🇼 TAIWAN ➔</div>
+                    </div>
+                    <div class="card-back">
+                        <h3>2025 MAY 🇹🇼 TAIWAN</h3>
+                        <p>台灣之旅，探索本土文化，品嚐道地美食。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="images/D5.JPG">
+                        <div class="caption">2025 JUN 🇭🇰 HONG KONG ➔</div>
+                    </div>
+                    <div class="card-back">
+                        <h3>2025 JUN 🇭🇰 HONG KONG</h3>
+                        <p>香港的繁華街頭，感受東方之珠的魅力。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="images/D6.JPG">
+                        <div class="caption">2025 JUL 🇹🇭 THAILAND ➔</div>
+                    </div>
+                    <div class="card-back">
+                        <h3>2025 JUL 🇹🇭 THAILAND</h3>
+                        <p>泰國的海灘假期，放鬆身心，享受陽光。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="images/D7.JPG">
+                        <div class="caption">2025 AUG 🇯🇵 TOKYO ➔</div>
+                    </div>
+                    <div class="card-back">
+                        <h3>2025 AUG 🇯🇵 TOKYO</h3>
+                        <p>東京的現代與傳統交融，探索都市的活力。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="images/D8.JPG">
+                        <div class="caption">2025 SEP 🇰🇷 SEOUL ➔</div>
+                    </div>
+                    <div class="card-back">
+                        <h3>2025 SEP 🇰🇷 SEOUL</h3>
+                        <p>首爾的美食之旅，品嚐韓式料理的美味。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="images/D9.JPG">
+                        <div class="caption">2025 OCT 🇸🇬 SINGAPORE ➔</div>
+                    </div>
+                    <div class="card-back">
+                        <h3>2025 OCT 🇸🇬 SINGAPORE</h3>
+                        <p>新加坡的未來城市，體驗科技與自然的融合。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="photo-card" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <img src="images/D10.JPG">
+                        <div class="caption">2025 NOV 🇯🇵 KYOTO ➔</div>
+                    </div>
+                    <div class="card-back">
+                        <h3>2025 NOV 🇯🇵 KYOTO</h3>
+                        <p>京都的古寺廟，沉浸在歷史的寧靜中。</p>
+                    </div>
+                </div>
+            </div>
+            
+            </div>
+
+        <center style="margin-top: 60px; margin-bottom: 50px;">
+            <button id="showP1">✨ 第十站：峇里島🌄 ✨</button>
+            <div id="pageP1" class="hidden" style="margin-top: 40px; max-width: 600px; padding: 20px;">
+                <img src="images/p_final.gif" style="width: 100%; border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="color: var(--accent-color);">生日快樂！宣兔！</h3>
+                <p>我們也要像飛機一樣，一起去更多的地方💕</p>
+            </div>
+        </center>
+    </div>
 
 <script>
-const RATES = { TWD: 1, JPY: 0.215, IDR: 0.0021, USD: 32.5 }; 
-let records = JSON.parse(localStorage.getItem('pwa_travel_v2') || '[]');
-let userName = localStorage.getItem('pwa_user_name') || '';
+    const answers = { 1: '0424', 2: 'A', 3: 'D', 4: '520', 5: 'yes' };
 
-function updateExchangeHint() {
-  const amt = parseFloat(document.getElementById('inp-amount').value) || 0;
-  const cur = document.getElementById('inp-cur').value;
-  const twd = Math.round(amt * RATES[cur]);
-  document.getElementById('exchange-hint').innerText = cur === 'TWD' ? '' : `≈ 台幣 $${twd.toLocaleString()} (${RATES[cur]})`;
-}
+    function checkAnswer(level) {
+        const input = document.getElementById(`input${level}`);
+        if (input.value.toLowerCase() === answers[level].toLowerCase()) {
+            confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 } });
+            document.getElementById(`level${level}`).classList.add('hidden');
+            if (level < 5) {
+                const next = document.getElementById(`level${level + 1}`);
+                next.classList.remove('hidden');
+                next.querySelector('input').focus();
+            } else {
+                showSuccess();
+            }
+        }
+    }
 
-function checkUser() {
-  if (!userName) {
-    userName = prompt("請輸入你的名字：") || "我";
-    localStorage.setItem('pwa_user_name', userName);
-  }
-  document.getElementById('user-display').innerText = `👤 ${userName}`;
-}
+    function showSuccess() {
+        document.getElementById('success').classList.remove('hidden');
+        var end = Date.now() + 4000;
+        (function frame() {
+            confetti({ particleCount: 4, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffcad4', '#d4a373'] });
+            confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ffcad4', '#d4a373'] });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+        const cards = document.querySelectorAll('.photo-card');
+        cards.forEach((card, i) => setTimeout(() => card.classList.add('show'), i * 200));
+    }
 
-function addRecord() {
-  const item = document.getElementById('inp-item').value.trim();
-  const oriAmt = parseFloat(document.getElementById('inp-amount').value);
-  const cur = document.getElementById('inp-cur').value;
-  const payer = document.getElementById('inp-payer').value;
-  const split = document.getElementById('inp-split').value;
-  const datetime = document.getElementById('inp-datetime').value;
+    for (let i = 1; i <= 5; i++) {
+        document.getElementById(`input${i}`).addEventListener('input', () => {
+            if(document.getElementById(`input${i}`).value.length >= answers[i].length) checkAnswer(i);
+        });
+    }
 
-  if (!item || isNaN(oriAmt) || !datetime) return;
-
-  const twdAmt = +(oriAmt * RATES[cur]).toFixed(2);
-  let shareMe = 0;
-  if (split === 'half') shareMe = twdAmt / 2;
-  else if (split === 'all-me') shareMe = twdAmt;
-  else if (split === 'all-friend') shareMe = 0;
-
-  records.unshift({ id: Date.now(), date: datetime, item, cur, oriAmt, twdAmt, payer, split, shareMe });
-  saveAndRender();
-  document.getElementById('inp-item').value = '';
-  document.getElementById('inp-amount').value = '';
-}
-
-function saveAndRender() {
-  localStorage.setItem('pwa_travel_v2', JSON.stringify(records));
-  render();
-}
-
-function formatDateTime(datetimeStr) {
-  const date = new Date(datetimeStr);
-  return date.toLocaleString('zh-TW', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Taipei' });
-}
-
-function render() {
-  checkUser();
-  const logBody = document.getElementById('log-body');
-  let myPaidSum = 0, mySpendSum = 0;
-
-  logBody.innerHTML = records.map(r => {
-    if (r.payer === 'me') myPaidSum += r.twdAmt;
-    mySpendSum += r.shareMe;
-    const splitMap = { half: '兩人平分', 'all-me': '全算我的', 'all-friend': '幫人墊款' };
-
-    return `
-      <div class="log-item">
-        <div class="log-info">
-          <div class="log-name">${r.item}</div>
-          <div class="log-sub">${formatDateTime(r.date)} · ${r.payer==='me'?'你墊付':'朋友付'} · ${r.cur} ${r.oriAmt.toLocaleString()}</div>
-        </div>
-        <div class="log-amount">
-          <div class="amt-twd">$${Math.round(r.twdAmt).toLocaleString()}</div>
-          <div class="amt-ori">${splitMap[r.split]}</div>
-        </div>
-        <button class="btn-del" onclick="deleteRecord(${r.id})">刪除</button>
-      </div>
-    `;
-  }).join('');
-
-  const net = myPaidSum - mySpendSum;
-  const settle = document.getElementById('settle-summary');
-  if (Math.abs(net) < 1) {
-    settle.innerText = '✅ 已結清'; settle.style.color = 'var(--green)';
-  } else {
-    settle.innerText = net > 0 ? `朋友還你 $${Math.round(net).toLocaleString()}` : `你還朋友 $${Math.round(Math.abs(net)).toLocaleString()}`;
-    settle.style.color = net > 0 ? 'var(--blue)' : 'var(--red)';
-  }
-  document.getElementById('m-total-paid').innerText = `$${Math.round(myPaidSum).toLocaleString()}`;
-  document.getElementById('m-my-spend').innerText = `$${Math.round(mySpendSum).toLocaleString()}`;
-  setDefaultDateTime();
-}
-
-function setDefaultDateTime() {
-  const now = new Date();
-  const eightHoursLater = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-  const datetime = eightHoursLater.toISOString().slice(0,16);
-  document.getElementById('inp-datetime').value = datetime;
-}
-
-function exportToCSV() {
-  if (records.length === 0) return alert("資料庫空空如也");
-  const headers = ["日期", "項目", "原幣", "原幣金額", "台幣總額", "支付者", "分帳方式", "我的負擔"];
-  const csvContent = "\uFEFF" + headers.join(",") + "\n" + 
-    records.map(r => [
-      formatDateTime(r.date), 
-      `"${r.item.replace(/"/g, '""')}"`, // 處理逗號與引號
-      r.cur, r.oriAmt, Math.round(r.twdAmt), 
-      r.payer==='me'?'我':'朋友', 
-      r.split, Math.round(r.shareMe)
-    ].join(",")).join("\n");
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `記帳_${new Date().toISOString().slice(0,10)}.csv`;
-  link.click();
-}
-
-function deleteRecord(id) { if (confirm('刪除？')) { records = records.filter(r => r.id !== id); saveAndRender(); } }
-function resetUserName() { const n = prompt("名字", userName); if (n) { userName = n; localStorage.setItem('pwa_user_name', n); render(); } }
-render();
+    document.getElementById('showP1').addEventListener('click', () => {
+        document.getElementById('pageP1').classList.remove('hidden');
+        document.getElementById('showP1').style.display = 'none';
+        setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 300);
+    });
 </script>
 </body>
 </html>
